@@ -6,11 +6,11 @@ from utils.websocket_manager import WebSocketManager
 from msgs.geometry_msgs import Twist
 from msgs.sensor_msgs import Image, JointState
 
-LOCAL_IP = "192.168.50.90"
-ROSBRIDGE_IP = "192.168.50.90"
+LOCAL_IP = "127.0.0.1"
+ROSBRIDGE_IP = "127.0.0.1"  # Localhost for rosbridge。
 ROSBRIDGE_PORT = 9090
 
-mcp = FastMCP("ros-mcp-server")
+mcp = FastMCP(host="0.0.0.0", port= 9091)
 ws_manager = WebSocketManager(ROSBRIDGE_IP, ROSBRIDGE_PORT, LOCAL_IP)
 twist = Twist(ws_manager, topic="/cmd_vel")
 image = Image(ws_manager, topic="/camera/image_raw")
@@ -30,7 +30,7 @@ def get_topics():
     else:
         return "No topics found"
 
-@mcp.tool()
+@mcp.tool(description="Publish a Twist message to /cmd_vel to control the robot's movement.")
 def pub_twist(linear: List[Any], angular: List[Any]):
     msg = twist.publish(linear, angular)
     ws_manager.close()
@@ -74,4 +74,5 @@ def sub_jointstate():
         return "No JointState data received"
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    #mcp.run(transport="stdio")
+    mcp.run(transport="sse")
